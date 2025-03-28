@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Content Idea Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4CAF50, #E91E63);
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+        input, select {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #222;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AI Content Idea Generator</h1>
+
+    <form id="generate-form">
+        <input type="text" id="niche" placeholder="Enter Niche (e.g., Fitness)" required><br>
+        <select id="platform" required>
+            <option value="">Select Platform</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            <option value="YouTube">YouTube</option>
+        </select><br>
+        <button type="button" id="generate-button">Generate & Buy ($5)</button>
+    </form>
+
+    <ul id="ideas-container"></ul>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Successful</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #4CAF50, #E91E63);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: rgba(0, 0, 0, 0.2);
+            margin: 10px auto;
+            padding: 10px;
+            max-width: 600px;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #222;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Payment Successful! Thank you for your purchase.</h1>
+    <h2>Here are your AI-generated content ideas:</h2>
+
+    <ul>
+        {% if ideas %}
+            {% for idea in ideas %}
+                <li>{{ idea }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No ideas found. Please try again.</li>
+        {% endif %}
+    </ul>
+
+    <button onclick="window.location.href='/'">Generate More</button>
+
+</body>
+</html>
