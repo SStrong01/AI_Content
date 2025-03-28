@@ -1,50 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AI Content Idea Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #4CAF50, #E91E63);
-            color: white;
-            text-align: center;
-            padding: 50px;
-        }
-        input, select {
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #222;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>AI Content Idea Generator</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #4CAF50, #E91E63);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: white;
+    }
+
+    input, select {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: black;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
+  <h1>AI Content Idea Generator</h1>
 
-    <h1>AI Content Idea Generator</h1>
+  <input type="text" id="niche" placeholder="Enter Niche (e.g. Fitness)">
+  <select id="platform">
+    <option value="Instagram">Instagram</option>
+    <option value="TikTok">TikTok</option>
+    <option value="YouTube">YouTube</option>
+    <option value="Blog">Blog</option>
+    <option value="Twitter">Twitter</option>
+  </select>
 
-    <form id="generate-form">
-        <input type="text" id="niche" placeholder="Enter Niche (e.g., Fitness)" required><br>
-        <select id="platform" required>
-            <option value="">Select Platform</option>
-            <option value="Instagram">Instagram</option>
-            <option value="TikTok">TikTok</option>
-            <option value="YouTube">YouTube</option>
-        </select><br>
-        <button type="button" id="generate-button">Generate & Buy ($5)</button>
-    </form>
+  <br>
+  <input type="email" id="email" placeholder="Enter your email" required>
 
-    <ul id="ideas-container"></ul>
+  <br>
+  <button id="generate-button">Generate & Buy ($5)</button>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <ul id="ideas-container"></ul>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

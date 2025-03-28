@@ -1,34 +1,34 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const generateButton = document.getElementById("generate-button");
+  const button = document.getElementById("generate-button");
 
-    generateButton.addEventListener("click", function () {
-        const niche = document.getElementById("niche").value;
-        const platform = document.getElementById("platform").value;
+  button.addEventListener("click", function () {
+    const niche = document.getElementById("niche").value.trim();
+    const platform = document.getElementById("platform").value;
+    const email = document.getElementById("email").value.trim();
 
-        if (!niche || !platform) {
-            alert("Please enter a niche and choose a platform.");
-            return;
-        }
+    if (!niche || !email) {
+      alert("Please enter your niche and email.");
+      return;
+    }
 
-        fetch("/checkout", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ niche: niche, platform: platform })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.checkout_url) {
-                window.location.href = data.checkout_url;
-            } else {
-                alert("Something went wrong during checkout.");
-                console.error(data);
-            }
-        })
-        .catch(err => {
-            console.error("Error:", err);
-            alert("Server error, please try again.");
-        });
+    fetch("/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ niche, platform, email })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        alert("Server error, please try again.");
+      }
+    })
+    .catch(err => {
+      console.error("Checkout Error:", err);
+      alert("Something went wrong. Try again.");
     });
+  });
 });
