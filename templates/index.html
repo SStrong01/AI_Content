@@ -2,59 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AI Content Idea Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Content Generator</title>
   <style>
     body {
       background: linear-gradient(to right, #4CAF50, #E91E63);
-      font-family: Arial, sans-serif;
+      color: white;
       text-align: center;
-      color: white;
+      font-family: Arial, sans-serif;
     }
-
-    input, select {
+    input, select, button {
       margin: 10px;
       padding: 10px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      margin: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-      background-color: black;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    ul {
-      list-style-type: none;
-      padding: 0;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <h1>AI Content Idea Generator</h1>
-
-  <input type="text" id="niche" placeholder="Enter Niche (e.g. Fitness)">
+  <input type="text" id="niche" placeholder="Enter Niche" required />
   <select id="platform">
     <option value="Instagram">Instagram</option>
     <option value="TikTok">TikTok</option>
     <option value="YouTube">YouTube</option>
-    <option value="Blog">Blog</option>
-    <option value="Twitter">Twitter</option>
   </select>
-
-  <br>
-  <input type="email" id="email" placeholder="Enter your email" required>
-
-  <br>
-  <button id="generate-button">Generate & Buy ($5)</button>
+  <input type="email" id="email" placeholder="Enter your email" required />
+  <button id="generate">Generate & Email Me Ideas</button>
 
   <ul id="ideas-container"></ul>
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    document.getElementById("generate").onclick = async () => {
+      const niche = document.getElementById("niche").value;
+      const platform = document.getElementById("platform").value;
+      const email = document.getElementById("email").value;
+
+      const res = await fetch("/generate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ niche, platform, email })
+      });
+
+      const data = await res.json();
+      if (data.ideas) {
+        const list = document.getElementById("ideas-container");
+        list.innerHTML = "";
+        data.ideas.forEach(idea => {
+          const li = document.createElement("li");
+          li.innerText = idea;
+          list.appendChild(li);
+        });
+      } else {
+        alert(data.error || "Something went wrong.");
+      }
+    };
+  </script>
 </body>
 </html>
