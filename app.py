@@ -6,7 +6,6 @@ import stripe
 import smtplib
 from email.mime.text import MIMEText
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
@@ -38,19 +37,22 @@ def generate():
             ]
         )
 
-        ideas = response.choices[0].message["content"]
+        ideas = response.choices[0].message.content.strip().split("\n")
+        ideas = [idea for idea in ideas if idea.strip()]
 
-        # Send the ideas via email
+        # Send email with ideas
         send_email(customer_email, ideas)
 
         return jsonify({"ideas": ideas})
+
     except Exception as e:
-        print("OpenAI error:", e)
+        print("OpenAI Error:", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/checkout", methods=["POST"])
 def create_checkout_session():
     try:
+        data = request.get_json()
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[{
@@ -58,18 +60,18 @@ def create_checkout_session():
                     "currency": "usd",
                     "unit_amount": 500,
                     "product_data": {
-                        "name": "AI-Generated Content Ideas"
+                        "name": "AI Generated Content Ideas",
                     },
                 },
                 "quantity": 1,
             }],
             mode="payment",
             success_url=url_for("success", _external=True),
-            cancel_url=url_for("index", _external=True)
+            cancel_url=url_for("index", _external=True),
         )
-        return redirect(session.url, code=303)
+        return jsonify({"checkout_url": session.url})
     except Exception as e:
-        return jsonify({"error": str(e)}), 403
+        return jsonify(error=str(e)), 403
 
 @app.route("/success")
 def success():
@@ -79,7 +81,7 @@ def send_email(to_email, ideas):
     from_email = os.getenv("EMAIL")
     password = os.getenv("EMAIL_PASSWORD")
 
-    msg = MIMEText(ideas)
+    msg = MIMEText("\n".join(ideas))
     msg["Subject"] = "Your AI-Generated Content Ideas"
     msg["From"] = from_email
     msg["To"] = to_email

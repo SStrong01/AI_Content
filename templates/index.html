@@ -1,74 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Content Idea Generator</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <style>
-    body {
-      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-      text-align: center;
-      padding: 50px;
-      font-family: Arial, sans-serif;
-    }
-
-    h1 {
-      margin-bottom: 30px;
-    }
-
-    input, select, button {
-      display: block;
-      margin: 15px auto;
-      width: 300px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>AI Content Idea Generator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(to right, #ff9a9e, #a1ffce);
+            padding: 50px;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-control, .form-select, .btn {
+            margin: 10px auto;
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
 </head>
 <body>
-  <h1>AI Content Idea Generator</h1>
-  <form id="content-form">
-    <input type="text" id="niche" placeholder="Enter your niche" required />
-    <select id="platform" required>
-      <option value="">Select platform</option>
-      <option value="Instagram">Instagram</option>
-      <option value="TikTok">TikTok</option>
-      <option value="YouTube">YouTube</option>
-      <option value="Blog">Blog</option>
-    </select>
-    <input type="email" id="email" placeholder="Enter your email" required />
-    <button type="submit" class="btn btn-primary">Generate & Buy ($5)</button>
-  </form>
+    <h1>AI Content Idea Generator</h1>
+    <form id="content-form">
+        <input type="text" id="niche" class="form-control" placeholder="Enter your niche" required>
+        <select id="platform" class="form-select" required>
+            <option value="">Select platform</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            <option value="YouTube">YouTube</option>
+            <option value="Blog">Blog</option>
+        </select>
+        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+        <button type="submit" id="generate-button" class="btn btn-success">Generate & Buy ($5)</button>
+    </form>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const form = document.getElementById("content-form");
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const button = document.getElementById("generate-button");
 
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const niche = document.getElementById("niche").value;
-        const platform = document.getElementById("platform").value;
-        const email = document.getElementById("email").value;
+            button.addEventListener("click", function (e) {
+                e.preventDefault();
 
-        fetch("/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic: niche, platform, email }),
-        })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-          } else {
-            alert("Payment failed or server error.");
-          }
-        })
-        .catch((err) => {
-          console.error("Checkout Error:", err);
-          alert("Server error, please try again.");
+                const niche = document.getElementById("niche").value.trim();
+                const platform = document.getElementById("platform").value;
+                const email = document.getElementById("email").value.trim();
+
+                if (!niche || !email) {
+                    alert("Please enter your niche and email.");
+                    return;
+                }
+
+                fetch("/checkout", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ niche, platform, email })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.checkout_url) {
+                        window.location.href = data.checkout_url;
+                    } else {
+                        alert("Payment failed or server error.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Checkout error:", err);
+                    alert("Something went wrong. Try again.");
+                });
+            });
         });
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
