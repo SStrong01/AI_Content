@@ -1,80 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>AI Content Idea Generator</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background: linear-gradient(to right, #ff9a9e, #a1ffce);
-            padding: 50px;
-            font-family: 'Segoe UI', sans-serif;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .form-control, .form-select, .btn {
-            margin: 10px auto;
-            width: 100%;
-            max-width: 400px;
-        }
-    </style>
-</head>
-<body>
-    <h1>AI Content Idea Generator</h1>
-    <form id="content-form">
-        <input type="text" id="niche" class="form-control" placeholder="Enter your niche" required>
-        <select id="platform" class="form-select" required>
-            <option value="">Select platform</option>
-            <option value="Instagram">Instagram</option>
-            <option value="TikTok">TikTok</option>
-            <option value="YouTube">YouTube</option>
-            <option value="Blog">Blog</option>
-        </select>
-        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
-        <button type="submit" id="generate-button" class="btn btn-success">Generate & Buy ($5)</button>
-    </form>
+# app.py
+import os
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from dotenv import load_dotenv
+from openai import OpenAI
+import stripe
+import smtplib
+from email.mime.text import MIMEText
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const button = document.getElementById("generate-button");
+load_dotenv()
 
-            button.addEventListener("click", function (e) {
-                e.preventDefault();
+app = Flask(__name__)
 
-                const niche = document.getElementById("niche").value.trim();
-                const platform = document.getElementById("platform").value;
-                const email = document.getElementById("email").value.trim();
+# Stripe setup
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-                if (!niche || !email) {
-                    alert("Please enter your niche and email.");
-                    return;
-                }
+# OpenAI setup
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-                fetch("/checkout", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    data = request.get_json()
+    niche = data.get("niche")
+    platform = data.get("platform")
+    customer_email = data.get("email")
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that generates content ideas."},
+                {"role": "user", "content": f"Generate 5 content ideas about {niche} for {platform}."}
+            ]
+        )
+        ideas = response.choices[0].message.content.split("\n")
+        send_email(customer_email, ideas)
+        return jsonify({"ideas": ideas})
+    except Exception as e:
+        print("OpenAI error:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    try:
+        data = request.get_json()
+        niche = data.get("niche")
+        platform = data.get("platform")
+        email = data.get("email")
+
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": 1500,
+                    "product_data": {
+                        "name": "AI-Generated Content Ideas"
                     },
-                    body: JSON.stringify({ niche, platform, email })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.checkout_url) {
-                        window.location.href = data.checkout_url;
-                    } else {
-                        alert("Payment failed or server error.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Checkout error:", err);
-                    alert("Something went wrong. Try again.");
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+                },
+                "quantity": 1,
+            }],
+            mode="payment",
+            success_url=url_for("success", _external=True) + f"?niche={niche}&platform={platform}&email={email}",
+            cancel_url=url_for("index", _external=True)
+        )
+        return jsonify({"checkout_url": session.url})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 403
+
+@app.route("/success")
+def success():
+    niche = request.args.get("niche")
+    platform = request.args.get("platform")
+    email = request.args.get("email")
+    return render_template("success.html", niche=niche, platform=platform, email=email)
+
+def send_email(to_email, ideas):
+    from_email = os.getenv("EMAIL")
+    password = os.getenv("EMAIL_PASSWORD")
+    msg = MIMEText("\n".join(ideas))
+    msg["Subject"] = "Your AI-Generated Content Ideas"
+    msg["From"] = from_email
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(from_email, password)
+            server.send_message(msg)
+        print("Email sent successfully.")
+    except Exception as e:
+        print("Error sending email:", e)
+
+if __name__ == "__main__":
+    app.run(debug=True)

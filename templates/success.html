@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- success.html --><!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Payment Successful</title>
@@ -34,18 +33,17 @@
 </head>
 <body>
     <h1>Payment Successful! Thank you for your purchase.</h1>
-    <h4>Here are your AI-generated ideas:</h4>
+    <h4>Here are your AI-generated ideas:</h4>{% if ideas %}
+    <ul>
+        {% for idea in ideas %}
+            <li>{{ idea }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No ideas found. Please generate new ones.</p>
+{% endif %}
 
-    {% if ideas %}
-        <ul>
-            {% for idea in ideas %}
-                <li>{{ idea }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No ideas found. Please generate new ones.</p>
-    {% endif %}
+<a href="/" class="btn btn-primary btn-back">Go Back to AI Generator</a>
 
-    <a href="/" class="btn btn-primary btn-back">Go Back to AI Generator</a>
 </body>
 </html>
