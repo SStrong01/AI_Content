@@ -1,95 +1,98 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 import stripe
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# OpenAI setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
 # Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-YOUR_DOMAIN = "https://ai-content-dqzc.onrender.com"
 
-# Home page
-@app.route('/')
+# OpenAI setup
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-# Create Checkout Session
-@app.route('/checkout', methods=['POST'])
-def checkout():
-    data = request.get_json()
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price_data': {
-                'currency': 'usd',
-                'unit_amount': 500,
-                'product_data': {
-                    'name': f"AI Content for {data['niche']} on {data['platform']}",
-                },
-            },
-            'quantity': 1,
-        }],
-        mode='payment',
-        success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url=YOUR_DOMAIN,
-    )
-    return jsonify({'checkout_url': session.url})
-
-# Success page
-@app.route('/success')
-def success():
-    return render_template('success.html', ideas=[])
-
-# Generate and Email AI content
-@app.route('/generate', methods=['POST'])
+@app.route("/generate", methods=["POST"])
 def generate():
-    niche = request.form['niche']
-    platform = request.form['platform']
-    email = request.form['email']
-
-    prompt = f"Generate 5 unique {platform} content ideas for the {niche} niche."
+    data = request.get_json()
+    topic = data.get("topic")
+    platform = data.get("platform")
+    customer_email = data.get("email")
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a creative assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.8
+                {"role": "system", "content": "You are a helpful assistant that generates social media content ideas."},
+                {"role": "user", "content": f"Generate 5 content ideas about {topic} for {platform}."}
+            ]
         )
-        ideas = response['choices'][0]['message']['content']
 
-        # Send ideas via email
-        send_email(email, ideas)
+        ideas = response.choices[0].message.content
 
-        return render_template("success.html", ideas=ideas.split("\n"))
+        # Email the ideas
+        send_email(customer_email, ideas)
+
+        return jsonify({"ideas": ideas})
 
     except Exception as e:
-        print("ERROR CALLING OPENAI:", e)
-        return "Error generating content, please try again."
+        print("OpenAI error:", e)
+        return jsonify({"error": str(e)}), 500
 
-# Email function
-def send_email(to_email, content):
-    msg = EmailMessage()
-    msg['Subject'] = "Your AI-Generated Content Ideas"
-    msg['From'] = os.getenv("EMAIL_USER")
-    msg['To'] = to_email
-    msg.set_content(f"Here are your AI-generated ideas:\n\n{content}")
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': 500,
+                    'product_data': {
+                        'name': 'AI-Generated Content Ideas'
+                    },
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('success', _external=True),
+            cancel_url=url_for('index', _external=True),
+        )
+        return redirect(checkout_session.url, code=303)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(os.getenv("EMAIL_USER"), os.getenv("EMAIL_PASS"))
-        smtp.send_message(msg)
+    except Exception as e:
+        return jsonify(error=str(e)), 403
 
-if __name__ == '__main__':
+@app.route("/success")
+def success():
+    return render_template("success.html")
+
+def send_email(to_email, ideas):
+    try:
+        from_email = os.getenv("EMAIL")
+        password = os.getenv("EMAIL_PASSWORD")
+
+        msg = MIMEText(ideas)
+        msg['Subject'] = 'Your AI-Generated Content Ideas'
+        msg['From'] = from_email
+        msg['To'] = to_email
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(from_email, password)
+            server.send_message(msg)
+
+        print("Email sent to", to_email)
+    except Exception as e:
+        print("Error sending email:", e)
+
+if __name__ == "__main__":
     app.run(debug=True)
