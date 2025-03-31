@@ -15,9 +15,6 @@
       color: green;
       margin-bottom: 20px;
     }
-    h4 {
-      margin-bottom: 30px;
-    }
     ul {
       list-style-type: none;
       padding: 0;
@@ -49,6 +46,6 @@
     <p>No ideas found. Please generate new ones.</p>
   {% endif %}
 
-  <a href="/" class="btn btn-primary btn-back">Go Back to AI Generator</a>
+  <a href="{{ url_for('index') }}" class="btn btn-primary btn-back">Go Back to AI Generator</a>
 </body>
 </html>
