@@ -1,5 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify import os from dotenv import load_dotenv from openai import OpenAI import stripe import smtplib from email.mime.text import MIMEText
-
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_mail import Mail, Message
+import openai
+import os
+from dotenv import load_dotenv
+import stripe
+from email.mime.text import MIMEText
 load_dotenv() app = Flask(name)
 
 Config
