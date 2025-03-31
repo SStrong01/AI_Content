@@ -12,7 +12,6 @@
       font-family: Arial, sans-serif;
       padding: 40px;
     }
-
     input, select, button {
       padding: 10px;
       margin: 10px;
@@ -20,18 +19,15 @@
       border: none;
       font-size: 16px;
     }
-
     input, select {
       width: 300px;
     }
-
     button {
       background-color: #fff;
       color: #4CAF50;
       font-weight: bold;
       cursor: pointer;
     }
-
     ul {
       list-style: none;
       padding: 0;
@@ -39,24 +35,18 @@
       margin: 20px auto;
       text-align: left;
     }
-
     li {
       background: rgba(255, 255, 255, 0.1);
       padding: 10px;
       border-radius: 6px;
       margin: 5px 0;
     }
-
-    .section {
-      margin-top: 30px;
-    }
   </style>
 </head>
 <body>
-
   <h1>AI Content Idea Generator</h1>
 
-  <div class="form">
+  <div>
     <input type="text" id="niche" placeholder="Enter your niche (e.g. Fitness)" required />
     <select id="platform" required>
       <option value="">Choose a platform</option>
@@ -65,53 +55,52 @@
       <option value="YouTube">YouTube</option>
     </select>
     <input type="email" id="email" placeholder="Enter your email" required />
-    <button id="generate-button">Generate Free Ideas</button>
+    <button id="generate-free">Generate 2 Free Ideas</button>
+    <button id="buy-premium">Buy 6 Premium Ideas ($10)</button>
   </div>
 
-  <div class="section">
-    <h3>AI-Generated Ideas:</h3>
-    <ul id="ideas-container"></ul>
-  </div>
-
-  <div class="section">
-    <h2>💡 Unlock Premium Features</h2>
-    <p>Get exclusive AI-generated content ideas for only <strong>$10</strong></p>
-    <button id="buy-now">Buy Now ($10 for Premium Ideas)</button>
-  </div>
+  <h3>AI-Generated Ideas:</h3>
+  <ul id="ideas-container"></ul>
 
   <script>
-    document.getElementById("generate-button").addEventListener("click", async () => {
+    document.getElementById("generate-free").addEventListener("click", async () => {
       const niche = document.getElementById("niche").value;
       const platform = document.getElementById("platform").value;
-      const email = document.getElementById("email").value;
-
-      if (!niche || !platform || !email) {
-        alert("Please fill in all fields.");
-        return;
-      }
 
       const res = await fetch("/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche, platform, email }),
+        body: JSON.stringify({ niche, platform })
       });
 
       const data = await res.json();
+      const list = document.getElementById("ideas-container");
+      list.innerHTML = "";
 
-      const ideasContainer = document.getElementById("ideas-container");
-      ideasContainer.innerHTML = "";
+      (data.ideas || [data.error]).forEach(idea => {
+        const li = document.createElement("li");
+        li.textContent = idea;
+        list.appendChild(li);
+      });
+    });
 
-      if (data.ideas) {
-        data.ideas.forEach(idea => {
-          const li = document.createElement("li");
-          li.textContent = idea;
-          ideasContainer.appendChild(li);
-        });
-      } else {
-        ideasContainer.innerHTML = `<li>${data.error || "Something went wrong."}</li>`;
-      }
+    document.getElementById("buy-premium").addEventListener("click", async () => {
+      const niche = document.getElementById("niche").value;
+      const platform = document.getElementById("platform").value;
+      const email = document.getElementById("email").value;
+
+      if (!niche || !platform || !email) return alert("Please fill out all fields.");
+
+      const res = await fetch("/premium", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche, platform, email })
+      });
+
+      const data = await res.json();
+      if (data.checkout_url) window.location.href = data.checkout_url;
+      else alert("Checkout failed: " + data.error);
     });
   </script>
-
 </body>
 </html>

@@ -1,79 +1,52 @@
-from flask import Flask, render_template, request, jsonify, session
-from flask_mail import Mail, Message
-import openai
-import os
-from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, jsonify import os from dotenv import load_dotenv from openai import OpenAI import stripe import smtplib from email.mime.text import MIMEText
 
-# Load environment variables
-load_dotenv()
+load_dotenv() app = Flask(name)
 
-app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+Config
 
-# OpenAI setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
+app.secret_key = os.getenv("FLASK_SECRET_KEY") stripe.api_key = os.getenv("STRIPE_SECRET_KEY") client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Flask-Mail config (Gmail SMTP)
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = os.getenv("EMAIL_USER")
-app.config["MAIL_PASSWORD"] = os.getenv("EMAIL_PASS")
+@app.route("/") def index(): return render_template("index.html")
 
-mail = Mail(app)
+@app.route("/generate", methods=["POST"]) def generate(): try: data = request.get_json() niche = data.get("niche") platform = data.get("platform") customer_email = data.get("email")
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that generates content ideas."},
+            {"role": "user", "content": f"Generate 5 content ideas about {niche} for {platform}."}
+        ]
+    )
 
-@app.route("/generate", methods=["POST"])
-def generate_ideas():
-    try:
-        data = request.get_json()
-        niche = data.get("niche")
-        platform = data.get("platform")
-        email = data.get("email")
+    ideas_raw = response.choices[0].message.content.strip()
+    ideas = [line.strip("- ") for line in ideas_raw.split("\n") if line.strip()]
 
-        if not niche or not platform or not email:
-            return jsonify({"error": "Missing required fields"}), 400
+    send_email(customer_email, "\n".join(ideas))
+    return jsonify({"ideas": ideas})
 
-        # Generate ideas using OpenAI
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that generates viral content ideas."
-                },
-                {
-                    "role": "user",
-                    "content": f"Generate 5 viral content ideas for {platform} in the {niche} niche."
-                }
-            ]
-        )
+except Exception as e:
+    print("Error:", e)
+    return jsonify({"error": "Something went wrong. Please try again later."}), 500
 
-        ideas_raw = response.choices[0].message["content"]
-        ideas = [line.strip("- ").strip() for line in ideas_raw.strip().split("\n") if line.strip()]
-        session["generated_ideas"] = ideas
+@app.route("/checkout", methods=["POST"]) def create_checkout_session(): try: data = request.get_json() session = stripe.checkout.Session.create( payment_method_types=["card"], line_items=[ { "price_data": { "currency": "usd", "unit_amount": 1500, "product_data": { "name": "AI Generated Content Ideas" } }, "quantity": 1, } ], mode="payment", success_url=url_for("success", _external=True), cancel_url=url_for("index", _external=True) ) return jsonify({"checkout_url": session.url})
 
-        # Send email with ideas
-        message = Message(
-            "Your AI-Generated Content Ideas",
-            sender=app.config["MAIL_USERNAME"],
-            recipients=[email]
-        )
-        message.body = "\n".join(ideas)
-        mail.send(message)
+except Exception as e:
+    return jsonify({"error": str(e)}), 403
 
-        return jsonify({"message": "Email sent!", "ideas": ideas})
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({"error": "Something went wrong. Please try again."}), 500
+@app.route("/success") def success(): ideas = request.args.get("ideas") ideas_list = [] if ideas: import json ideas_list = json.loads(ideas) return render_template("success.html", ideas=ideas_list)
 
-@app.route("/success")
-def success():
-    ideas = session.get("generated_ideas", [])
-    return render_template("success.html", ideas=ideas)
+def send_email(to_email, ideas): from_email = os.getenv("EMAIL") password = os.getenv("EMAIL_PASSWORD")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+msg = MIMEText(ideas)
+msg["Subject"] = "Your AI-Generated Content Ideas"
+msg["From"] = from_email
+msg["To"] = to_email
+
+try:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(from_email, password)
+        server.sendmail(from_email, to_email, msg.as_string())
+except Exception as e:
+    print("Error sending email:", e)
+
+if name == "main": app.run(debug=True)
