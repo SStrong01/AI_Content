@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,15 +41,18 @@
 </head>
 <body>
   <h1>✅ Payment Successful! Thank you for your purchase.</h1>
-  <h3>Here are your premium AI-generated ideas:</h3> <ul>
+  <h3>Here are your premium AI-generated ideas:</h3>
+
+  <ul>
     {% if ideas %}
       {% for idea in ideas %}
         <li>{{ idea }}</li>
       {% endfor %}
     {% else %}
-      <li>No ideas found. Please contact support.</li>
+      <li>No ideas found. Please try again.</li>
     {% endif %}
-  </ul><a href="/"><button>Go Back to AI Generator</button></a>
+  </ul>
 
+  <a href="/"><button>Go Back to AI Generator</button></a>
 </body>
 </html>

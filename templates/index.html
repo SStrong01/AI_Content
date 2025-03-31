@@ -56,7 +56,7 @@
     </select>
     <input type="email" id="email" placeholder="Enter your email" required />
     <button id="generate-free">Generate 2 Free Ideas</button>
-    <button id="buy-premium">Buy 6 Premium Ideas ($10)</button>
+    <button id="buy-premium">Buy 6 Premium Ideas ($15)</button>
   </div>
 
   <h3>AI-Generated Ideas:</h3>
@@ -66,18 +66,24 @@
     document.getElementById("generate-free").addEventListener("click", async () => {
       const niche = document.getElementById("niche").value;
       const platform = document.getElementById("platform").value;
+      const email = document.getElementById("email").value;
+
+      if (!niche || !platform || !email) {
+        alert("Please fill in all fields.");
+        return;
+      }
 
       const res = await fetch("/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche, platform })
+        body: JSON.stringify({ niche, platform, email })
       });
 
       const data = await res.json();
       const list = document.getElementById("ideas-container");
       list.innerHTML = "";
 
-      (data.ideas || [data.error]).forEach(idea => {
+      (data.ideas || [data.error || "Something went wrong"]).forEach(idea => {
         const li = document.createElement("li");
         li.textContent = idea;
         list.appendChild(li);
@@ -85,21 +91,16 @@
     });
 
     document.getElementById("buy-premium").addEventListener("click", async () => {
-      const niche = document.getElementById("niche").value;
-      const platform = document.getElementById("platform").value;
-      const email = document.getElementById("email").value;
-
-      if (!niche || !platform || !email) return alert("Please fill out all fields.");
-
-      const res = await fetch("/premium", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche, platform, email })
+      const res = await fetch("/create-checkout-session", {
+        method: "POST"
       });
 
       const data = await res.json();
-      if (data.checkout_url) window.location.href = data.checkout_url;
-      else alert("Checkout failed: " + data.error);
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        alert("Error starting payment: " + (data.error || "Unknown error"));
+      }
     });
   </script>
 </body>
