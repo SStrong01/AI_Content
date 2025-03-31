@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Successful</title>
+  <meta charset="UTF-8">
+  <title>Payment Success</title>
   <style>
     body {
       background: linear-gradient(to right, #4CAF50, #E91E63);
@@ -15,44 +14,25 @@
     ul {
       list-style: none;
       padding: 0;
-      max-width: 600px;
-      margin: 20px auto;
     }
     li {
       background: white;
       color: black;
-      margin: 10px;
-      padding: 15px;
+      margin: 10px auto;
+      width: 60%;
       border-radius: 8px;
-      font-size: 16px;
-    }
-    button {
-      margin-top: 30px;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #4CAF50;
-      background-color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>✅ Payment Successful! Thank you for your purchase.</h1>
+  <h1>✅ Payment Successful!</h1>
   <h3>Here are your premium AI-generated ideas:</h3>
-
   <ul>
-    {% if ideas %}
-      {% for idea in ideas %}
-        <li>{{ idea }}</li>
-      {% endfor %}
-    {% else %}
-      <li>No ideas found. Please try again.</li>
-    {% endif %}
+    {% for idea in ideas %}
+      <li>{{ idea }}</li>
+    {% endfor %}
   </ul>
-
-  <a href="/"><button>Go Back to AI Generator</button></a>
+  <a href="/"><button>Back to Home</button></a>
 </body>
 </html>
