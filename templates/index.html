@@ -1,85 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Content Idea Generator</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
     body {
-      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-      padding: 50px;
+      background: linear-gradient(to right, #4CAF50, #E91E63);
+      color: white;
       text-align: center;
       font-family: Arial, sans-serif;
+      padding: 40px;
     }
-    h1 {
-      margin-bottom: 30px;
-    }
+
     input, select, button {
-      display: block;
-      width: 300px;
-      margin: 10px auto;
       padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      margin: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
     }
+
+    input, select {
+      width: 300px;
+    }
+
     button {
-      background-color: #000;
-      color: #fff;
+      background-color: #fff;
+      color: #4CAF50;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 20px auto;
+      text-align: left;
+    }
+
+    li {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 6px;
+      margin: 5px 0;
+    }
+
+    .section {
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
+
   <h1>AI Content Idea Generator</h1>
-  <form id="content-form">
-    <input type="text" id="niche" placeholder="Enter your niche" required>
-    
+
+  <div class="form">
+    <input type="text" id="niche" placeholder="Enter your niche (e.g. Fitness)" required />
     <select id="platform" required>
-      <option value="">Select platform</option>
+      <option value="">Choose a platform</option>
       <option value="Instagram">Instagram</option>
       <option value="TikTok">TikTok</option>
       <option value="YouTube">YouTube</option>
-      <option value="Blog">Blog</option>
     </select>
-    
-    <input type="email" id="email" placeholder="Enter your email" required>
-    
-    <button type="submit" id="generate-button">Generate & Buy ($15)</button>
-  </form>
+    <input type="email" id="email" placeholder="Enter your email" required />
+    <button id="generate-button">Generate Free Ideas</button>
+  </div>
+
+  <div class="section">
+    <h3>AI-Generated Ideas:</h3>
+    <ul id="ideas-container"></ul>
+  </div>
+
+  <div class="section">
+    <h2>💡 Unlock Premium Features</h2>
+    <p>Get exclusive AI-generated content ideas for only <strong>$10</strong></p>
+    <button id="buy-now">Buy Now ($10 for Premium Ideas)</button>
+  </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const button = document.getElementById("generate-button");
+    document.getElementById("generate-button").addEventListener("click", async () => {
+      const niche = document.getElementById("niche").value;
+      const platform = document.getElementById("platform").value;
+      const email = document.getElementById("email").value;
 
-      button.addEventListener("click", function (e) {
-        e.preventDefault();
-        const niche = document.getElementById("niche").value.trim();
-        const platform = document.getElementById("platform").value;
-        const email = document.getElementById("email").value.trim();
+      if (!niche || !platform || !email) {
+        alert("Please fill in all fields.");
+        return;
+      }
 
-        if (!niche || !email) {
-          alert("Please enter your niche and email.");
-          return;
-        }
-
-        fetch("/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ niche, platform, email })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-          } else {
-            alert("Payment failed or server error.");
-          }
-        })
-        .catch(err => {
-          console.error("Checkout Error:", err);
-          alert("Something went wrong. Please try again.");
-        });
+      const res = await fetch("/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche, platform, email }),
       });
+
+      const data = await res.json();
+
+      const ideasContainer = document.getElementById("ideas-container");
+      ideasContainer.innerHTML = "";
+
+      if (data.ideas) {
+        data.ideas.forEach(idea => {
+          const li = document.createElement("li");
+          li.textContent = idea;
+          ideasContainer.appendChild(li);
+        });
+      } else {
+        ideasContainer.innerHTML = `<li>${data.error || "Something went wrong."}</li>`;
+      }
     });
   </script>
+
 </body>
 </html>
