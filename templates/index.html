@@ -1,87 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Content Idea Generator</title>
-  <style>
-    body {
-      background: linear-gradient(to right, #4CAF50, #E91E63);
-      color: white;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      padding: 50px;
-    }
-    input, select, button {
-      padding: 10px;
-      margin: 10px;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>AI Content Idea Generator</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #4CAF50, #E91E63);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 6px;
+            border: none;
+        }
+        button {
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <h1>AI Content Idea Generator</h1>
-  <input id="niche" placeholder="Your niche" required />
-  <select id="platform" required>
-    <option value="">Select platform</option>
-    <option value="Instagram">Instagram</option>
-    <option value="TikTok">TikTok</option>
-    <option value="YouTube">YouTube</option>
-  </select>
-  <input id="email" placeholder="Your email" type="email" required />
-  <br />
-  <button onclick="generate()">Get 2 Free Ideas</button>
-  <button onclick="buy()">Buy 6 Premium Ideas ($15)</button>
+    <h1>AI Content Idea Generator</h1>
+    <form id="content-form">
+        <input type="text" id="niche" placeholder="Enter your niche" required>
+        <select id="platform" required>
+            <option value="">Select platform</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            <option value="YouTube">YouTube</option>
+        </select>
+        <button type="submit">Generate Free Ideas</button>
+    </form>
+    <h3>AI-Generated Ideas:</h3>
+    <ul id="ideas-list"></ul>
 
-  <h2>AI-Generated Ideas</h2>
-  <ul id="results"></ul>
+    <script>
+        document.getElementById("content-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const niche = document.getElementById("niche").value;
+            const platform = document.getElementById("platform").value;
 
-  <script>
-    function generate() {
-      const niche = document.getElementById("niche").value;
-      const platform = document.getElementById("platform").value;
-      const email = document.getElementById("email").value;
+            const res = await fetch("/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ niche, platform })
+            });
 
-      fetch("/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche, platform, email })
-      })
-      .then(res => res.json())
-      .then(data => {
-        const results = document.getElementById("results");
-        results.innerHTML = "";
-        if (data.ideas) {
-          data.ideas.forEach(idea => {
-            const li = document.createElement("li");
-            li.textContent = idea;
-            results.appendChild(li);
-          });
-        } else {
-          results.innerHTML = `<li>${data.error}</li>`;
-        }
-      });
-    }
+            const data = await res.json();
+            const ideasList = document.getElementById("ideas-list");
+            ideasList.innerHTML = "";
 
-    function buy() {
-      const niche = document.getElementById("niche").value;
-      const platform = document.getElementById("platform").value;
-      const email = document.getElementById("email").value;
-
-      fetch("/buy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche, platform, email })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.checkout_url) {
-          window.location.href = data.checkout_url;
-        } else {
-          alert("Error: " + data.error);
-        }
-      });
-    }
-  </script>
+            if (data.ideas) {
+                data.ideas.forEach(idea => {
+                    const li = document.createElement("li");
+                    li.textContent = idea;
+                    ideasList.appendChild(li);
+                });
+            } else {
+                ideasList.innerHTML = `<li>${data.error || "No ideas found"}</li>`;
+            }
+        });
+    </script>
 </body>
 </html>
