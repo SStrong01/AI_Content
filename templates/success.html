@@ -1,58 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Payment Success</title>
-    <style>
-        body {
-            background: linear-gradient(to right, #4CAF50, #E91E63);
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 30px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-
-        li {
-            background: white;
-            color: black;
-            margin: 5px auto;
-            padding: 10px;
-            border-radius: 5px;
-            width: 60%;
-        }
-
-        a button {
-            padding: 10px 20px;
-            margin-top: 30px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            background-color: white;
-            color: #E91E63;
-            cursor: pointer;
-        }
-    </style>
+  <title>Success</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #4CAF50, #E91E63);
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      color: black;
+      margin: 10px auto;
+      padding: 10px;
+      width: 60%;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Payment Successful! Thank you for your purchase.</h1>
-    <h3>Here are your premium AI-generated ideas:</h3>
-
-    <ul>
-        {% if ideas %}
-            {% for idea in ideas %}
-                <li>{{ idea }}</li>
-            {% endfor %}
-        {% else %}
-            <li>No ideas found. Please generate new ones.</li>
-        {% endif %}
-    </ul>
-
-    <a href="/"><button>Go Back to Generator</button></a>
+  <h1>✅ Payment Successful</h1>
+  <h3>Here are your premium AI-generated ideas:</h3>
+  <ul>
+    {% for idea in ideas %}
+      <li>{{ idea }}</li>
+    {% else %}
+      <li>No ideas found.</li>
+    {% endfor %}
+  </ul>
+  <a href="/"><button>Go Back</button></a>
 </body>
 </html>
