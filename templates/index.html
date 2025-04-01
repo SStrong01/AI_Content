@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Content Idea Generator</title>
     <style>
         body {
@@ -9,61 +10,109 @@
             font-family: Arial, sans-serif;
             color: white;
             text-align: center;
-            padding: 50px;
+            padding: 30px;
         }
-        input, select, button {
+
+        input, select {
             padding: 10px;
             margin: 10px;
-            border-radius: 6px;
+            width: 250px;
+            border-radius: 5px;
             border: none;
         }
+
         button {
+            padding: 10px 20px;
+            margin-top: 20px;
             font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            background-color: white;
+            color: #E91E63;
             cursor: pointer;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        li {
+            background: white;
+            color: black;
+            margin: 5px auto;
+            padding: 10px;
+            border-radius: 5px;
+            width: 60%;
         }
     </style>
 </head>
 <body>
     <h1>AI Content Idea Generator</h1>
-    <form id="content-form">
-        <input type="text" id="niche" placeholder="Enter your niche" required>
-        <select id="platform" required>
-            <option value="">Select platform</option>
-            <option value="Instagram">Instagram</option>
-            <option value="TikTok">TikTok</option>
-            <option value="YouTube">YouTube</option>
-        </select>
-        <button type="submit">Generate Free Ideas</button>
-    </form>
+
+    <input type="text" id="niche" placeholder="Enter niche" required>
+    <select id="platform" required>
+        <option value="Instagram">Instagram</option>
+        <option value="TikTok">TikTok</option>
+        <option value="YouTube">YouTube</option>
+    </select>
+    <input type="email" id="email" placeholder="Enter your email" required>
+
+    <div>
+        <button onclick="generateFree()">Generate Free Ideas (2)</button>
+        <button onclick="buyPremium()">Buy Premium Ideas ($15)</button>
+    </div>
+
     <h3>AI-Generated Ideas:</h3>
-    <ul id="ideas-list"></ul>
+    <ul id="ideas-container"></ul>
 
     <script>
-        document.getElementById("content-form").addEventListener("submit", async function (e) {
-            e.preventDefault();
+        async function generateFree() {
             const niche = document.getElementById("niche").value;
             const platform = document.getElementById("platform").value;
+            const email = document.getElementById("email").value;
 
-            const res = await fetch("/generate", {
+            const response = await fetch("/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ niche, platform })
+                body: JSON.stringify({ niche, platform, email })
             });
 
-            const data = await res.json();
-            const ideasList = document.getElementById("ideas-list");
-            ideasList.innerHTML = "";
+            const data = await response.json();
+
+            const list = document.getElementById("ideas-container");
+            list.innerHTML = "";
 
             if (data.ideas) {
                 data.ideas.forEach(idea => {
                     const li = document.createElement("li");
                     li.textContent = idea;
-                    ideasList.appendChild(li);
+                    list.appendChild(li);
                 });
             } else {
-                ideasList.innerHTML = `<li>${data.error || "No ideas found"}</li>`;
+                list.innerHTML = `<li>Error: ${data.error}</li>`;
             }
-        });
+        }
+
+        async function buyPremium() {
+            const niche = document.getElementById("niche").value;
+            const platform = document.getElementById("platform").value;
+            const email = document.getElementById("email").value;
+
+            const response = await fetch("/create-checkout-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ niche, platform, email })
+            });
+
+            const data = await response.json();
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                alert("Error creating checkout session.");
+            }
+        }
     </script>
 </body>
 </html>
