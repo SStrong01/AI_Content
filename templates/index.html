@@ -1,52 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AI Content Idea Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            background: linear-gradient(to right, #4CAF50, #E91E63);
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            padding: 40px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Keep Them Coming - AI Content Idea Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #8bc34a, #e91e63);
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
 
-        input, select, button {
-            margin: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            border: none;
-        }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+    }
 
-        button {
-            cursor: pointer;
-            font-weight: bold;
-            background-color: white;
-            color: black;
-        }
+    input, select {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+    }
 
-        button:hover {
-            background-color: #f0f0f0;
-        }
-    </style>
+    button {
+      padding: 12px 20px;
+      margin: 20px;
+      background-color: white;
+      color: #e91e63;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #f8f8f8;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
 <body>
-    <h1>AI Content Idea Generator</h1>
+  <h1>AI Content Idea Generator</h1>
 
-    <input type="text" id="niche" placeholder="Enter your niche (e.g. Fitness)" required>
-    <select id="platform">
-        <option value="Instagram">Instagram</option>
-        <option value="TikTok">TikTok</option>
-        <option value="YouTube">YouTube</option>
-    </select>
-    <input type="email" id="email" placeholder="Enter your email" required>
+  <input type="text" id="niche" placeholder="Enter your niche" />
+  <select id="platform">
+    <option value="TikTok">TikTok</option>
+    <option value="Instagram">Instagram</option>
+    <option value="YouTube">YouTube</option>
+    <option value="Pinterest">Pinterest</option>
+  </select>
 
-    <br>
-    <button id="buy-premium">Buy Premium Ideas ($15)</button>
+  <br />
+  <button id="checkout-button" data-stripe-public-key="{{ stripe_public_key }}">Buy Premium Ideas ($15)</button>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <div id="status"></div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

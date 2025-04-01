@@ -1,34 +1,39 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const buyButton = document.getElementById("buy-premium");
+document.addEventListener("DOMContentLoaded", function () {
+    const checkoutButton = document.getElementById("checkout-button");
+    const statusDiv = document.getElementById("status");
 
-    buyButton.addEventListener("click", () => {
-        const niche = document.getElementById("niche").value.trim();
-        const platform = document.getElementById("platform").value.trim();
-        const email = document.getElementById("email").value.trim();
+    checkoutButton.addEventListener("click", async () => {
+        const niche = document.getElementById("niche").value;
+        const platform = document.getElementById("platform").value;
 
-        if (!niche || !platform || !email) {
-            alert("Please fill in all fields.");
+        if (!niche || !platform) {
+            alert("Please enter a niche and select a platform.");
             return;
         }
 
-        fetch("/create-checkout-session", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ niche, platform, email })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.checkout_url) {
-                window.location.href = data.checkout_url;
+        checkoutButton.disabled = true;
+        statusDiv.innerHTML = "<p style='color: yellow;'>Redirecting to payment...</p>";
+
+        try {
+            const response = await fetch("/create-checkout-session", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ niche, platform })
+            });
+
+            const result = await response.json();
+
+            if (result.id) {
+                const stripe = Stripe(document.getElementById("checkout-button").dataset.stripePublicKey);
+                stripe.redirectToCheckout({ sessionId: result.id });
             } else {
-                alert(data.error || "Failed to start checkout session.");
+                throw new Error(result.error || "Unknown error");
             }
-        })
-        .catch(err => {
-            console.error("Checkout error:", err);
-            alert("An error occurred. Please try again.");
-        });
+        } catch (err) {
+            statusDiv.innerHTML = `<p style='color: red;'>Error: ${err.message}</p>`;
+            checkoutButton.disabled = false;
+        }
     });
 });
