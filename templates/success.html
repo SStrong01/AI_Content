@@ -1,39 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Success</title>
-  <style>
-    body {
-      background: linear-gradient(to right, #4CAF50, #E91E63);
-      color: white;
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: white;
-      color: black;
-      margin: 10px auto;
-      padding: 10px;
-      width: 60%;
-      border-radius: 8px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Payment Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: linear-gradient(to right, #4CAF50, #E91E63);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        li {
+            background: white;
+            color: black;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+            background-color: white;
+            color: black;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #eeeeee;
+        }
+    </style>
 </head>
 <body>
-  <h1>✅ Payment Successful</h1>
-  <h3>Here are your premium AI-generated ideas:</h3>
-  <ul>
-    {% for idea in ideas %}
-      <li>{{ idea }}</li>
-    {% else %}
-      <li>No ideas found.</li>
-    {% endfor %}
-  </ul>
-  <a href="/"><button>Go Back</button></a>
+    <h1>✅ Payment Successful!</h1>
+    <h3>Here are your premium AI-generated ideas:</h3>
+
+    <ul>
+        {% if ideas %}
+            {% for idea in ideas %}
+                <li>{{ idea }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No ideas found.</li>
+        {% endif %}
+    </ul>
+
+    <a href="/"><button>Go Back</button></a>
 </body>
 </html>

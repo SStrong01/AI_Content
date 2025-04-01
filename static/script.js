@@ -1,34 +1,34 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const button = document.getElementById("generate-button");
+document.addEventListener("DOMContentLoaded", () => {
+    const buyButton = document.getElementById("buy-premium");
 
-  button.addEventListener("click", function () {
-    const niche = document.getElementById("niche").value.trim();
-    const platform = document.getElementById("platform").value;
-    const email = document.getElementById("email").value.trim();
+    buyButton.addEventListener("click", () => {
+        const niche = document.getElementById("niche").value.trim();
+        const platform = document.getElementById("platform").value.trim();
+        const email = document.getElementById("email").value.trim();
 
-    if (!niche || !email) {
-      alert("Please enter your niche and email.");
-      return;
-    }
+        if (!niche || !platform || !email) {
+            alert("Please fill in all fields.");
+            return;
+        }
 
-    fetch("/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ niche, platform, email })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      } else {
-        alert("Server error, please try again.");
-      }
-    })
-    .catch(err => {
-      console.error("Checkout Error:", err);
-      alert("Something went wrong. Try again.");
+        fetch("/create-checkout-session", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ niche, platform, email })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                alert(data.error || "Failed to start checkout session.");
+            }
+        })
+        .catch(err => {
+            console.error("Checkout error:", err);
+            alert("An error occurred. Please try again.");
+        });
     });
-  });
 });
