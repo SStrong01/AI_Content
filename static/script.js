@@ -13,9 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const response = await fetch("/buy", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ niche, platform })
         });
 
@@ -26,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
           stripe.redirectToCheckout({ sessionId: data.id });
         } else {
           alert("Error: " + (data.error || "Something went wrong."));
-          console.error("Stripe session error:", data);
         }
       } catch (error) {
         alert("Network error. Please try again.");

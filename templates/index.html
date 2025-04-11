@@ -41,11 +41,6 @@
     button:hover {
       background-color: #f1f1f1;
     }
-
-    #status {
-      margin-top: 20px;
-      font-size: 1.1rem;
-    }
   </style>
 </head>
 <body>
@@ -65,9 +60,6 @@
     Buy Premium Ideas ($15)
   </button>
 
-  <div id="status"></div>
-
-  <!-- Stripe & Script -->
   <script src="https://js.stripe.com/v3/"></script>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
