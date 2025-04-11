@@ -1,39 +1,40 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const checkoutButton = document.getElementById("checkout-button");
-    const statusDiv = document.getElementById("status");
+document.addEventListener("DOMContentLoaded", () => {
+  const buyBtn = document.getElementById("buyPremiumBtn");
 
-    checkoutButton.addEventListener("click", async () => {
-        const niche = document.getElementById("niche").value;
-        const platform = document.getElementById("platform").value;
+  if (buyBtn) {
+    buyBtn.addEventListener("click", async () => {
+      const niche = document.getElementById("niche").value;
+      const platform = document.getElementById("platform").value;
+      const stripePublicKey = buyBtn.dataset.stripeKey;
 
-        if (!niche || !platform) {
-            alert("Please enter a niche and select a platform.");
-            return;
+      buyBtn.disabled = true;
+      buyBtn.innerText = "Processing...";
+
+      try {
+        const response = await fetch("/buy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ niche, platform })
+        });
+
+        const data = await response.json();
+
+        if (data.id) {
+          const stripe = Stripe(stripePublicKey);
+          stripe.redirectToCheckout({ sessionId: data.id });
+        } else {
+          alert("Error: " + (data.error || "Something went wrong."));
+          console.error("Stripe session error:", data);
         }
-
-        checkoutButton.disabled = true;
-        statusDiv.innerHTML = "<p style='color: yellow;'>Redirecting to payment...</p>";
-
-        try {
-            const response = await fetch("/create-checkout-session", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ niche, platform })
-            });
-
-            const result = await response.json();
-
-            if (result.id) {
-                const stripe = Stripe(document.getElementById("checkout-button").dataset.stripePublicKey);
-                stripe.redirectToCheckout({ sessionId: result.id });
-            } else {
-                throw new Error(result.error || "Unknown error");
-            }
-        } catch (err) {
-            statusDiv.innerHTML = `<p style='color: red;'>Error: ${err.message}</p>`;
-            checkoutButton.disabled = false;
-        }
+      } catch (error) {
+        alert("Network error. Please try again.");
+        console.error("Fetch error:", error);
+      } finally {
+        buyBtn.disabled = false;
+        buyBtn.innerText = "Buy Premium Ideas ($15)";
+      }
     });
+  }
 });

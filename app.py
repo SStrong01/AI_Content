@@ -1,89 +1,115 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from openai import OpenAI
+import sqlite3
 import stripe
+import openai
 import os
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# OpenAI Configuration
+# Stripe API Keys
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+stripe.api_key = STRIPE_SECRET_KEY
+
+# OpenAI (v1.0+)
+from openai import OpenAI
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Stripe Configuration
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
-YOUR_DOMAIN = os.getenv("STRIPE_DOMAIN", "http://localhost:5000")
+# Optional DB init
+def init_db():
+    with sqlite3.connect('database.db') as conn:
+        conn.execute('''CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            email TEXT UNIQUE,
+            username TEXT,
+            password TEXT,
+            plan TEXT DEFAULT 'free')''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS ads (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            title TEXT,
+            description TEXT,
+            platform TEXT)''')
 
+init_db()
 
-@app.route("/")
+# Homepage
+@app.route('/')
 def index():
-    return render_template("index.html", stripe_public_key=STRIPE_PUBLIC_KEY)
+    return render_template('index.html', stripe_public_key=STRIPE_PUBLIC_KEY)
 
+# Create Stripe Checkout Session
+@app.route('/buy', methods=['POST'])
+def buy():
+    data = request.get_json()
+    niche = data.get("niche", "")
+    platform = data.get("platform", "")
+    session["niche"] = niche
+    session["platform"] = platform
 
-@app.route("/create-checkout-session", methods=["POST"])
-def create_checkout_session():
     try:
-        data = request.get_json()
-        niche = data.get("niche")
-        platform = data.get("platform")
-
-        if not niche or not platform:
-            return jsonify({"error": "Missing niche or platform"}), 400
-
-        session["niche"] = niche
-        session["platform"] = platform
-
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "unit_amount": 1500,
-                        "product_data": {
-                            "name": "Premium Content Ideas"
-                        }
-                    },
-                    "quantity": 1
-                }
-            ],
-            mode="payment",
-            success_url=YOUR_DOMAIN + "/success",
-            cancel_url=YOUR_DOMAIN
+        session_data = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {'name': 'Premium Ad Access'},
+                    'unit_amount': 1500,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('success', _external=True),
+            cancel_url=url_for('index', _external=True),
         )
-
-        return jsonify({"id": checkout_session.id})
+        return jsonify(id=session_data.id)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print("Stripe error:", e)
+        return jsonify(error="Stripe session creation failed."), 400
 
-
-@app.route("/success")
+# AI-Powered Success Page
+@app.route('/success')
 def success():
-    niche = session.get("niche", "")
-    platform = session.get("platform", "")
+    niche = session.get("niche", "content")
+    platform = session.get("platform", "social media")
 
-    if not niche or not platform:
-        return render_template("success.html", ideas=["Something went wrong. Please try again."])
+    prompt = (
+        f"Give me 4 unique, creative content ideas for promoting a {niche} brand on {platform}. "
+        "Make each idea short, catchy, and effective."
+    )
 
     try:
-        prompt = f"Generate 7 viral content ideas for {platform} in the {niche} niche."
-
-        chat_response = openai_client.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "You are a creative content strategist."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.9,
+            max_tokens=300,
         )
 
-        content = chat_response.choices[0].message.content
-        ideas = [line.strip() for line in content.split("\n") if line.strip()]
-
+        output = response.choices[0].message.content
+        ideas = [line.strip("- ").strip() for line in output.split("\n") if line.strip()]
         return render_template("success.html", ideas=ideas)
+
     except Exception as e:
-        return render_template("success.html", ideas=[f"Error: {str(e)}"])
+        print("OpenAI error:", e)
+        return render_template("success.html", ideas=[
+            "Error generating ideas. Please try again.",
+            str(e)
+        ])
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

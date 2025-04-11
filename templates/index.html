@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Keep Them Coming - AI Content Idea Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keep Them Coming – AI Content Idea Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #8bc34a, #e91e63);
+      background: linear-gradient(to right, #b8c34a, #e91e63);
       color: white;
       text-align: center;
       padding: 50px;
@@ -28,17 +28,18 @@
 
     button {
       padding: 12px 20px;
-      margin: 20px;
+      margin-top: 20px;
       background-color: white;
       color: #e91e63;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
     button:hover {
-      background-color: #f8f8f8;
+      background-color: #f1f1f1;
     }
 
     #status {
@@ -51,18 +52,22 @@
   <h1>AI Content Idea Generator</h1>
 
   <input type="text" id="niche" placeholder="Enter your niche" />
+  <br />
   <select id="platform">
     <option value="TikTok">TikTok</option>
     <option value="Instagram">Instagram</option>
     <option value="YouTube">YouTube</option>
     <option value="Pinterest">Pinterest</option>
   </select>
-
   <br />
-  <button id="checkout-button" data-stripe-public-key="{{ stripe_public_key }}">Buy Premium Ideas ($15)</button>
+
+  <button id="buyPremiumBtn" data-stripe-key="{{ stripe_public_key }}">
+    Buy Premium Ideas ($15)
+  </button>
 
   <div id="status"></div>
 
+  <!-- Stripe & Script -->
   <script src="https://js.stripe.com/v3/"></script>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
